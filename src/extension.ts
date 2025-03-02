@@ -1,22 +1,31 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "json-path-copy" is now active!');
+	const disposable = vscode.commands.registerCommand('json-path-copy.copyPath', () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage('No active editor found');
+			return;
+		}
+		
+		const document = editor.document;
+		if (document.languageId !== 'json') {
+			vscode.window.showErrorMessage('Active editor is not a JSON file');
+			return;
+		}
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('json-path-copy.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from json-path-copy!');
+
+		const selection = editor.selection;
+   const cursorPosition = selection.active;
+		const path = getJsonPath(document, cursorPosition);
+
+		if (path) {
+			vscode.env.clipboard.writeText(path);
+			vscode.window.showInformationMessage(`Copied JSON path: ${path}`);
+	} else {
+			vscode.window.showErrorMessage('Unable to determine JSON path at cursor position.');
+	}
 	});
 
 	context.subscriptions.push(disposable);
@@ -24,3 +33,60 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+function getJsonPath(document: vscode.TextDocument, position: vscode.Position): string | null {
+	const text = document.getText();
+	const offset = document.offsetAt(position);
+	const path: string[] = [];
+
+	let inString = false;
+	let stringStart = -1;
+	let currentKey = '';
+	let arrayIndex = 0;
+
+	for (let i = 0; i <= offset; i++) {
+			const char = text[i];
+
+			if (char === '"' && (i === 0 || text[i - 1] !== '\\')) {
+					if (inString) {
+							inString = false;
+							if (stringStart !== -1) {
+									currentKey = text.substring(stringStart, i);
+							}
+					} else {
+							inString = true;
+							stringStart = i + 1;
+					}
+			} else if (!inString) {
+					if (char === '{') {
+							if (currentKey) {
+									path.push(currentKey);
+									currentKey = '';
+							}
+					} else if (char === '[') {
+							arrayIndex = 0;
+					} else if (char === ']') {
+							path.pop();
+					} else if (char === ',') {
+							arrayIndex++;
+							currentKey = '';
+					} else if (char === ':') {
+							if (currentKey) {
+									path.push(currentKey);
+									currentKey = '';
+							} else {
+									path.push(arrayIndex.toString());
+							}
+					}
+			}
+	}
+
+	// 現在のキーまたはインデックスをパスに追加
+	if (currentKey) {
+		path.push(currentKey);
+} else if (!inString && arrayIndex > 0) {
+		path.push(arrayIndex.toString());
+}
+
+	return path.join('.');
+}
