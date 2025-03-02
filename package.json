@@ -25,7 +25,14 @@
           "when": "editorTextFocus"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "json-path-copy.copyPath",
+        "key": "ctrl+shift+c",
+        "when": "editorTextFocus"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
