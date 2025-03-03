@@ -1,0 +1,74 @@
+{
+  "organization": {
+    "name": "TechCorp",
+    "founded": 1995,
+    "headquarters": {
+      "city": "San Francisco",
+      "state": "California",
+      "country": "USA",
+      "address": {
+        "street": "123 Innovation Ave",
+        "zipCode": "94105",
+        "coordinates": {
+          "latitude": 37.7749,
+          "longitude": -122.4194
+        }
+      }
+    },
+    "departments": [
+      {
+        "name": "Research & Development",
+        "head": {
+          "name": "Dr. Jane Smith",
+          "id": "JS001",
+          "contact": {
+            "email": "jane.smith@techcorp.com",
+            "phone": "+1-555-123-4567",
+            "socialMedia": {
+              "linkedin": "janesmith",
+              "twitter": "@drjanesmith"
+            }
+          },
+          "projects": [
+            {
+              "name": "Project Alpha",
+              "budget": 1000000,
+              "team": [
+                {
+                  "name": "John Doe",
+                  "role": "Senior Developer",
+                  "skills": [
+                    "Python",
+                    "Machine Learning",
+                    "Cloud Computing"
+                  ]
+                },
+                {
+                  "name": "Alice Johnson",
+                  "role": "Data Scientist",
+                  "skills": [
+                    "R",
+                    "Statistics",
+                    "Big Data"
+                  ]
+                }
+              ],
+              "milestones": [
+                {
+                  "name": "Prototype",
+                  "dueDate": "2025-06-30",
+                  "status": "In Progress"
+                },
+                {
+                  "name": "Beta Testing",
+                  "dueDate": "2025-09-30",
+                  "status": "Pending"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
