@@ -46,51 +46,76 @@ function getJsonPath(
   const path: string[] = [];
 
   let inString = false;
+  // inStringがtrueの場合、stringStartには文字列の開始位置が格納される
   let stringStart = -1;
+  // 現在のキー(value, array上で存在)
   let currentKey = "";
-  let arrayIndex = 0;
+  // 現在の配列のインデックス(array上で-1以外の値を持つ)
+  let arrayIndex = -1;
 
   for (let i = 0; i <= offset; i++) {
     const char = text[i];
 
+    if (char === " " || char === "\t" || char === "\n" || char === "\r") {
+      continue;
+    }
+
     if (char === '"' && (i === 0 || text[i - 1] !== "\\")) {
       if (inString) {
+        // key or valueの終わり
         inString = false;
         if (stringStart !== -1) {
-          currentKey = text.substring(stringStart, i);
+          if (currentKey) {
+            // valueの終わり
+          } else {
+            // keyの終わり
+            currentKey = text.substring(stringStart, i);
+          }
         }
       } else {
+        // key or valueの開始
         inString = true;
         stringStart = i + 1;
       }
     } else if (!inString) {
       if (char === "{") {
+        // 新たなオブジェクトの開始
         if (currentKey) {
           path.push(currentKey);
           currentKey = "";
         }
+      } else if (char === "}") {
+        // オブジェクトの終了
+        path.pop();
       } else if (char === "[") {
         arrayIndex = 0;
       } else if (char === "]") {
+        arrayIndex = -1;
         path.pop();
       } else if (char === ",") {
-        arrayIndex++;
-        currentKey = "";
-      } else if (char === ":") {
-        if (currentKey) {
-          path.push(currentKey);
-          currentKey = "";
+        if (arrayIndex > -1) {
+          arrayIndex++;
         } else {
-          path.push(arrayIndex.toString());
+          currentKey = "";
         }
+      } else if (char === ":") {
+        console.log("colon");
       }
     }
   }
 
   // 現在のキーまたはインデックスをパスに追加
   if (currentKey) {
+    // value上にカーソルがある場合
     path.push(currentKey);
-  } else if (!inString && arrayIndex > 0) {
+  } else if (inString && !currentKey) {
+    // key上にカーソルがある場合、次の'"'までをkeyとして扱う
+    const keyEnd = text.indexOf('"', stringStart);
+    if (keyEnd > -1) {
+      currentKey = text.substring(stringStart, keyEnd);
+      path.push(currentKey);
+    }
+  } else if (arrayIndex > -1) {
     path.push(arrayIndex.toString());
   }
 
