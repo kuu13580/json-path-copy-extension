@@ -89,11 +89,16 @@ function getJsonPath(
         path.pop();
       } else if (char === "[") {
         arrayIndex = 0;
+        if (currentKey) {
+          path.push(currentKey);
+          currentKey = "";
+        }
       } else if (char === "]") {
         arrayIndex = -1;
         path.pop();
       } else if (char === ",") {
-        if (arrayIndex > -1) {
+        if (arrayIndex > -1 && !currentKey) {
+          // 純粋な配列の場合
           arrayIndex++;
         } else {
           currentKey = "";
@@ -105,6 +110,9 @@ function getJsonPath(
   }
 
   // 現在のキーまたはインデックスをパスに追加
+  if (arrayIndex > -1) {
+    path.push(arrayIndex.toString());
+  }
   if (currentKey) {
     // value上にカーソルがある場合
     path.push(currentKey);
@@ -115,8 +123,6 @@ function getJsonPath(
       currentKey = text.substring(stringStart, keyEnd);
       path.push(currentKey);
     }
-  } else if (arrayIndex > -1) {
-    path.push(arrayIndex.toString());
   }
 
   return path.join(".");
