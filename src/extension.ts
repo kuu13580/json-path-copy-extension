@@ -103,8 +103,6 @@ function getJsonPath(
         } else {
           currentKey = "";
         }
-      } else if (char === ":") {
-        console.log("colon");
       }
     }
   }

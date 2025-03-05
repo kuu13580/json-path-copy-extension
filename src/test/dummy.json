@@ -37,20 +37,12 @@
                 {
                   "name": "John Doe",
                   "role": "Senior Developer",
-                  "skills": [
-                    "Python",
-                    "Machine Learning",
-                    "Cloud Computing"
-                  ]
+                  "skills": ["Python", "Machine Learning", "Cloud Computing"]
                 },
                 {
                   "name": "Alice Johnson",
                   "role": "Data Scientist",
-                  "skills": [
-                    "R",
-                    "Statistics",
-                    "Big Data"
-                  ]
+                  "skills": ["R", "Statistics", "Big Data"]
                 }
               ],
               "milestones": [
