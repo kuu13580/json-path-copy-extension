@@ -43,15 +43,14 @@ function getJsonPath(
 ): string | null {
   const text = document.getText();
   const offset = document.offsetAt(position);
-  const path: string[] = [];
+  // indexが-1以外の場合は配列の中にいることを示す
+  const path: { key: string; index: number }[] = [];
 
   let inString = false;
   // inStringがtrueの場合、stringStartには文字列の開始位置が格納される
   let stringStart = -1;
   // 現在のキー(value, array上で存在)
   let currentKey = "";
-  // 現在の配列のインデックス(array上で-1以外の値を持つ)
-  let arrayIndex = -1;
 
   for (let i = 0; i <= offset; i++) {
     const char = text[i];
@@ -77,51 +76,68 @@ function getJsonPath(
         inString = true;
         stringStart = i + 1;
       }
+      console.log(
+        char,
+        currentKey,
+        path.map(p => [p.key, p.index])
+      );
     } else if (!inString) {
       if (char === "{") {
         // 新たなオブジェクトの開始
         if (currentKey) {
-          path.push(currentKey);
+          path.push({ key: currentKey, index: -1 });
           currentKey = "";
         }
       } else if (char === "}") {
-        // オブジェクトの終了
-        path.pop();
+        if (path[path.length - 1].index === -1) {
+          // 単体オブジェクトの終了
+          path.pop();
+          currentKey = "";
+        }
       } else if (char === "[") {
-        arrayIndex = 0;
+        // 新たな配列の開始
         if (currentKey) {
-          path.push(currentKey);
+          path.push({ key: currentKey, index: 0 });
           currentKey = "";
         }
       } else if (char === "]") {
-        arrayIndex = -1;
         path.pop();
       } else if (char === ",") {
-        if (arrayIndex > -1 && !currentKey) {
-          // 純粋な配列の場合
-          arrayIndex++;
-        } else {
+        if (currentKey) {
+          // keyに対応するvalueの終わり
           currentKey = "";
+        } else if (path[path.length - 1].index > -1) {
+          // 配列の要素の終わり
+          path[path.length - 1].index++;
         }
       }
+      console.log(
+        char,
+        currentKey,
+        path.map(p => [p.key, p.index])
+      );
     }
   }
 
-  // 現在のキーまたはインデックスをパスに追加
-  if (arrayIndex > -1) {
-    path.push(arrayIndex.toString());
-  }
   if (currentKey) {
     // value上にカーソルがある場合
-    path.push(currentKey);
+    path.push({ key: currentKey, index: -1 });
   } else if (inString && !currentKey) {
     // key上にカーソルがある場合、次の'"'までをkeyとして扱う
     const keyEnd = text.indexOf('"', stringStart);
     if (keyEnd > -1) {
       currentKey = text.substring(stringStart, keyEnd);
-      path.push(currentKey);
+      path.push({ key: currentKey, index: -1 });
     }
   }
 
-  return path.join(".");
+  return path
+    .map(p => {
+      if (p.index > -1) {
+        return `${p.key}[${p.index}]`;
+      } else {
+        return p.key;
+      }
+    })
+    .join(".");
 }
